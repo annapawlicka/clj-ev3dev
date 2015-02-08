@@ -37,7 +37,7 @@ can send those commands yourself, doing `cat
 /sys/class/msensor/sensor0/value0` is tedious. It’s much easier when
 you have a higher-level library to use.
 
-By running your application on your machine you benefit of a gazillion
+By running your application on your machine you benefit from a gazillion
 times faster CPU that can crunch those algorithms in no time. And you
 save EV3's battery too.
 
@@ -60,7 +60,7 @@ KexAlgorithms curve25519-sha256 at libssh.org,diffie-hellman-group1-sha1,diffie-
 Restart openSSH server on your server and try connecting again:
 
 ```shell
-# /etc/init.d/ssh restart
+/etc/init.d/ssh restart
 ```
 
 ## Usage
@@ -74,7 +74,7 @@ To read proximity value:
 
 => (use 'clj-ev3dev.sensors.infrared)
 => (read-proximity session)
-=> "0"
+  "0"
 ```
 
 ## License
