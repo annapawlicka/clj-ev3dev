@@ -65,7 +65,7 @@ Restart openSSH server on your server and try connecting again:
 
 ## Usage
 
-To read proximity value:
+To read sensor state:
 
 ```clojure
 => (use 'clj-ev3dev.core)
@@ -73,8 +73,22 @@ To read proximity value:
 "username" :password "password" :strict-host-key-checking :no}))
 
 => (use 'clj-ev3dev.sensors.infrared)
-=> (read-proximity session)
-  "0"
+=> (def infrared-sensor (find-infrared-sensor session)
+=> (read-proximity session sensor)
+   44
+
+=> (use 'clj-ev3dev.sensors.touch)
+=> (def touch-sensor (find-touch-sensor session))
+=> (pressed? session touch-sensor)
+   true
+
+=> (use 'clj-ev3dev.sensors.color)
+=> (def color-sensor (find-color-sensor session))
+=> (read-color session color-sensor)
+   :red
+=> (read-reflected-light-intensity session color-sensor)
+   23
+
 ```
 
 ## License

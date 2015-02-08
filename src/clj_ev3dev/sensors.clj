@@ -3,7 +3,7 @@
             [clojure.string  :as str]))
 
 (def type-resolver {"touch"    "lego-ev3-touch"
-                    "color"    "lego-ev3-uart-29"
+                    "color"    "ev3-uart-29"
                     "infrared" "ev3-uart-33"})
 
 (defn port-name [sensor]

@@ -1,11 +1,17 @@
 (ns clj-ev3dev.sensors.infrared
-  (:require [clj-ev3dev.sensors :as sensors]
-            [clj-ev3dev.core    :as core]))
+  (:require [clj-ev3dev.sensors        :as sensors]
+            [clj-ev3dev.core           :as core]
+            [clj-ev3dev.sensors.common :as common]))
 
-;; TODO put all path builders into multimethod in a common ns
-(defn value [sensor]
-  (str "cat /sys/class/msensor/" sensor "/value0"))
+(defn find-infrared-sensor
+  ([session in-port]
+   (sensors/find-sensor session "infrared" in-port))
+  ([session]
+   (sensors/find-sensor session "infrared" "in4")))
 
-(defn read-proximity [session]
-  (let [sensor (sensors/find-sensor session "touch" "in1")] ;; TODO make configurable
-    (core/execute session (value sensor))))
+(defn read-proximity
+  "Reads the proximity value (in range 0 - 100)
+  reported by the infrared sensor. A value of 100
+  corresponds to a range of approximately 70 cm."
+  [session sensor]
+  (common/read-value session sensor))
