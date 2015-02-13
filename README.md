@@ -65,7 +65,7 @@ Restart openSSH server on your server and try connecting again:
 
 ## Usage
 
-To read sensor state:
+To read/write sensor/motor state:
 
 ```clojure
 user=> (use 'clj-ev3dev.core)

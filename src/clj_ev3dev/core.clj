@@ -3,6 +3,7 @@
 
 (defn create-session
   "Creates ssh session using provided config.
+
   Config example:
   {:ip-address \"192.168.2.3\" :username \"username\"
    :password \"password\" :strict-host-key-checking :no} "
@@ -11,7 +12,8 @@
     (ssh/session agent (:ip-address config) config)))
 
 (defn connect
-  "Connects the session."
+  "Connects the session. If the session has disconneted,
+  it will automatically reconnect."
   [session]
   (if-not (ssh/connected? session)
     (ssh/connect session)
