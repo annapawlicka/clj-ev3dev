@@ -90,7 +90,7 @@ user=> (read-reflected-light-intensity session color-sensor)
        23
 
 user=> (use 'clj-ev3dev.devices)
-user=> (def red-left (find-let :red-left)) ;; :red-right, :green-left, :green-right
+user=> (def red-left (find-led :red-left)) ;; :red-right, :green-left, :green-right
 user=> (use 'clj-ev3dev.motors.led)
 user=> (read-intensity session red-left)
        0
