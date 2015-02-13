@@ -1,5 +1,5 @@
 (ns clj-ev3dev.sensors.touch
-  (:require [clj-ev3dev.sensors        :as sensors]
+  (:require [clj-ev3dev.devices        :as devices]
             [clj-ev3dev.core           :as core]
             [clj-ev3dev.sensors.common :as common]))
 
@@ -11,6 +11,6 @@
 
 (defn find-touch-sensor
   ([session in-port]
-   (sensors/find-sensor session "touch" in-port))
+   (devices/find-sensor session "touch" in-port))
   ([session]
-   (sensors/find-sensor session "touch" "in1")))
+   (devices/find-sensor session "touch" "in1")))

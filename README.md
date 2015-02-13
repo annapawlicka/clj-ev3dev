@@ -68,26 +68,35 @@ Restart openSSH server on your server and try connecting again:
 To read sensor state:
 
 ```clojure
-=> (use 'clj-ev3dev.core)
-=> (def session (create-session {:ip "192.168.2.3" :username
+user=> (use 'clj-ev3dev.core)
+user=> (def session (create-session {:ip "192.168.2.3" :username
 "username" :password "password" :strict-host-key-checking :no}))
 
-=> (use 'clj-ev3dev.sensors.infrared)
-=> (def infrared-sensor (find-infrared-sensor session)
-=> (read-proximity session sensor)
-   44
+user=> (use 'clj-ev3dev.sensors.infrared)
+user=> (def infrared-sensor (find-infrared-sensor session)
+user=> (read-proximity session sensor)
+       44
 
-=> (use 'clj-ev3dev.sensors.touch)
-=> (def touch-sensor (find-touch-sensor session))
-=> (pressed? session touch-sensor)
-   true
+user=> (use 'clj-ev3dev.sensors.touch)
+user=> (def touch-sensor (find-touch-sensor session))
+user=> (pressed? session touch-sensor)
+       true
 
-=> (use 'clj-ev3dev.sensors.color)
-=> (def color-sensor (find-color-sensor session))
-=> (read-color session color-sensor)
-   :red
-=> (read-reflected-light-intensity session color-sensor)
-   23
+user=> (use 'clj-ev3dev.sensors.color)
+user=> (def color-sensor (find-color-sensor session))
+user=> (read-color session color-sensor)
+       :red
+user=> (read-reflected-light-intensity session color-sensor)
+       23
+
+user=> (use 'clj-ev3dev.devices)
+user=> (def red-left (find-let :red-left)) ;; :red-right, :green-left, :green-right
+user=> (use 'clj-ev3dev.motors.led)
+user=> (read-intensity session red-left)
+       0
+user=> (max-intensity session red-left)
+       255
+user=> (set-intensity session red-left 75)
 
 ```
 

@@ -1,5 +1,5 @@
 (ns clj-ev3dev.sensors.color
-  (:require [clj-ev3dev.sensors        :as sensors]
+  (:require [clj-ev3dev.devices        :as devices]
             [clj-ev3dev.core           :as core]
             [clj-ev3dev.sensors.common :as common]))
 
@@ -14,9 +14,9 @@
 
 (defn find-color-sensor
   ([session in-port]
-   (sensors/find-sensor session "color" in-port))
+   (devices/find-sensor session "color" in-port))
   ([session]
-   (sensors/find-sensor session "color" "in3")))
+   (devices/find-sensor session "color" "in3")))
 
 (defn toggle-mode
   "Sensor can act in three different modes: COL-COLOR,
