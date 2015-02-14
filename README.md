@@ -34,8 +34,10 @@ and `lein trampoline repl`, to no avail.
 I've settled on sending commands over ssh. This library
 wraps shell commands and sends them over ssh. And although you
 can send those commands yourself, doing `cat
-/sys/class/msensor/sensor0/value0` is tedious. It’s much easier when
-you have a higher-level library to use.
+/sys/class/msensor/sensor0/value0` is tedious, especially that each time you boot
+EV3 the devices (sensors & motors) are mapped to different nodes that do not
+correspond to the in ports. It’s much easier when
+you have a higher-level library to use that handles that for you.
 
 By running your application on your machine you benefit from a gazillion
 times faster CPU that can crunch those algorithms in no time. And you
