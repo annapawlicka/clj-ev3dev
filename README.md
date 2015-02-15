@@ -100,6 +100,12 @@ user=> (max-intensity session red-left)
        255
 user=> (set-intensity session red-left 75)
 
+;; To run motor:
+user=> (use 'clj-ev3dev.motors.tacho)
+user=> (def motor-left (find-tacho-motor session "B"))
+user=> (run session motor-left 20) ;; runs the left motor with very
+slow speed
+user=> (stop session motor-left)   ;; stops the motor
 ```
 
 ## License
