@@ -21,7 +21,11 @@ When the regulation mode is on (has to be enabled by enable-regulation-mode
 function) the motor driver attempts to keep the motor speed at the `speed`
 value you&apos;ve specified which ranges from -2000 to 2000.
 
-Negative values indicate reverse motion regardless of the regulation mode.</pre></div></div><div class="public anchor" id="var-run-motor"><h3>run-motor</h3><h4 class="type">multimethod</h4><div class="usage"></div><div class="doc"><pre class="plaintext"></pre></div></div><div class="public anchor" id="var-set-duty-cycle"><h3>set-duty-cycle</h3><div class="usage"><code>(set-duty-cycle session motor value)</code></div><div class="doc"><pre class="plaintext">Sets the duty cycle. Duty cycle should be a numerical
+Negative values indicate reverse motion regardless of the regulation mode.</pre></div></div><div class="public anchor" id="var-run-motor"><h3>run-motor</h3><h4 class="type">multimethod</h4><div class="usage"></div><div class="doc"><pre class="plaintext">Sets the speed of the motor and runs it.
+Depending on the regulation mode it will either set
+pulses per second (enabled) or duty cycle (disabled).
+
+It throws exception if speed is outside of a valid range.</pre></div></div><div class="public anchor" id="var-set-duty-cycle"><h3>set-duty-cycle</h3><div class="usage"><code>(set-duty-cycle session motor value)</code></div><div class="doc"><pre class="plaintext">Sets the duty cycle. Duty cycle should be a numerical
 value.
 
 The duty cycle is useful when you just want to turn
@@ -52,6 +56,6 @@ with a load, the motor driver tries to compensate by sending
 more power to the motor to get it to speed up. If you speed up
 the motor for some reason, the motor driver will try to compensate
 by sending less power to the motor.</pre></div></div><div class="public anchor" id="var-stop"><h3>stop</h3><div class="usage"><code>(stop session motor)</code></div><div class="doc"><pre class="plaintext">Stops the motor.
-</pre></div></div><div class="public anchor" id="var-write-power"><h3>write-power</h3><div class="usage"><code>(write-power session motor power)</code></div><div class="doc"><pre class="plaintext">Writes the operating powier of the motor.
+</pre></div></div><div class="public anchor" id="var-write-power"><h3>write-power</h3><div class="usage"><code>(write-power session motor power)</code></div><div class="doc"><pre class="plaintext">Writes the operating power of the motor.
 </pre></div></div><div class="public anchor" id="var-write-speed"><h3>write-speed</h3><div class="usage"><code>(write-speed session motor speed)</code></div><div class="doc"><pre class="plaintext">Sets the operating speed of the motor.
 </pre></div></div></div></body></html>

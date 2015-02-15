@@ -63,7 +63,7 @@
   (read-state session motor :speed-read))
 
 (defn write-power
-  "Writes the operating powier of the motor."
+  "Writes the operating power of the motor."
   [session motor power]
   (write-state session motor :power-write power))
 
@@ -145,7 +145,13 @@
   [session motor position]
   (write-state session motor :position position))
 
-(defmulti run-motor (fn [session motor speed regulation-mode] regulation-mode))
+(defmulti run-motor
+  "Sets the speed of the motor and runs it.
+  Depending on the regulation mode it will either set
+  pulses per second (enabled) or duty cycle (disabled).
+
+  It throws exception if speed is outside of a valid range."
+  (fn [session motor speed regulation-mode] regulation-mode))
 
 (defmethod run-motor :on [session motor speed _]
   (if (and (> speed 2000) (< speed -2000))
@@ -158,7 +164,7 @@
   (if (and (> speed 100) (< speed -100))
     (throw (Exception. "The speed must be in range [-100, 100]"))
     (do
-      (write-speed session motor speed)
+      (write-power session motor speed)
       (write-state session motor :run 1))))
 
 (defn run
