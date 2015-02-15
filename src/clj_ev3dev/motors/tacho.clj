@@ -52,6 +52,26 @@
       (throw (Exception. "There are no tacho motors connected."))
       (locate-in-port session out-port motors))))
 
+(defn write-speed
+  "Sets the operating speed of the motor."
+  [session motor speed]
+  (write-state session motor :speed-write speed))
+
+(defn read-speed
+  "Reads the operating speed of the motor."
+  [session motor]
+  (read-state session motor :speed-read))
+
+(defn write-power
+  "Writes the operating powier of the motor."
+  [session motor power]
+  (write-state session motor :power-write power))
+
+(defn read-power
+  "Reads the operating power of the motor."
+  [session motor]
+  (read-state session motor :power-read))
+
 (defn set-duty-cycle
   "Sets the duty cycle. Duty cycle should be a numerical
   value.
@@ -104,6 +124,17 @@
   [session motor]
   (read-state session motor :regulation-mode))
 
+(defn enable-break-mode
+  "Enables brake mode, causing the motor to brake to stops."
+  [session motor]
+  (write-state session motor :stop-mode "brake"))
+
+(defn disable-break-mode
+  "Disables brake mode, causing the motor to coast to stops.
+  Brake mode is off by default."
+  [session motor]
+  (write-state session motor :stop-mode "coast"))
+
 (defn current-position
   "Reads the current position of the motor."
   [session motor]
@@ -120,14 +151,14 @@
   (if (and (> speed 2000) (< speed -2000))
     (throw (Exception. "The speed in regulation mode must be in range [-2000, 2000]."))
     (do
-      (write-state session motor :speed-write speed)
+      (write-speed session motor speed)
       (write-state session motor :run 1))))
 
 (defmethod run-motor :off [session motor speed _]
   (if (and (> speed 100) (< speed -100))
     (throw (Exception. "The speed must be in range [-100, 100]"))
     (do
-      (write-state session motor :power-write speed)
+      (write-speed session motor speed)
       (write-state session motor :run 1))))
 
 (defn run
