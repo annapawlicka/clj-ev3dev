@@ -67,40 +67,75 @@ Restart openSSH server on your server and try connecting again:
 
 ## Usage
 
-To read/write sensor/motor state:
+To establish session:
 
 ```clojure
+
 user=> (use 'clj-ev3dev.core)
-user=> (def session (create-session {:ip "192.168.2.3" :username
+user=> (def session (create-session {:ip-address "192.168.2.3" :username
 "username" :password "password" :strict-host-key-checking :no}))
 
+```
+
+To find node names of connected sensors and motors:
+
+```clojure
+user=> (require '[clj-ev3dev.devices :as devices])
+```
+
+Infrared sensor:
+
+```clojure
+
 user=> (use 'clj-ev3dev.sensors.infrared)
-user=> (def infrared-sensor (find-infrared-sensor session)
+user=> (def infrared-sensor (devices/find-sensor session :infrared "in4")
 user=> (read-proximity session sensor)
        44
 
+```
+
+Touch sensor:
+
+```clojure
+
 user=> (use 'clj-ev3dev.sensors.touch)
-user=> (def touch-sensor (find-touch-sensor session))
+user=> (def touch-sensor (devices/find-sensor session :touch "in1"))
 user=> (pressed? session touch-sensor)
        true
 
+```
+
+Color sensor:
+
+
+```clojure
+
 user=> (use 'clj-ev3dev.sensors.color)
-user=> (def color-sensor (find-color-sensor session))
+user=> (def color-sensor (devices/find-sensor session :color "in3"))
 user=> (read-color session color-sensor)
        :red
 user=> (read-reflected-light-intensity session color-sensor)
        23
+```
 
-user=> (use 'clj-ev3dev.devices)
+LEDs:
+
+```clojure
+
 user=> (def red-left (find-led :red-left)) ;; :red-right, :green-left, :green-right
-user=> (use 'clj-ev3dev.motors.led)
+user=> (use 'clj-ev3dev.led)
 user=> (read-intensity session red-left)
        0
 user=> (max-intensity session red-left)
        255
 user=> (set-intensity session red-left 75)
 
-;; To run motor:
+```
+
+Tacho motors:
+
+```clojure
+
 user=> (use 'clj-ev3dev.motors.tacho)
 user=> (def motor-left (find-tacho-motor session "B"))
 user=> (run session motor-left 20) ;; runs the left motor with very

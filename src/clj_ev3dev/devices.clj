@@ -10,6 +10,10 @@
                     :red-left    "ev3:red:left"
                     :red-right   "ev3:red:right"})
 
+(def default-ports {:touch    "in1"
+                    :color    "in3"
+                    :infrared "in4"})
+
 (defn- port-name [sensor]
   (str "cat /sys/class/msensor/" sensor "/port_name"))
 
@@ -30,14 +34,15 @@
 (defn- find-device
   [session cmd device-type in-port]
   (let [files (str/split-lines (core/execute session cmd))]
-    (locate-in-port session device-type in-port files)))
+    (locate-in-port session device-type (or in-port (get default-ports device-type)) files)))
 
 (defn find-sensor
   "Finds sensor's node name by searching for
   sensor type and port that it's plugged in.
 
-  Sensor types: :touch, :color, :infrared."
-  [session sensor-type in-port]
+  Sensor types: :touch, :color, :infrared.
+  Ports are: in1, in2, in3, in4."
+  [session sensor-type & [in-port]]
   (find-device session "ls /sys/class/msensor" sensor-type in-port))
 
 (defn find-tacho-motor

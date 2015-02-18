@@ -1,6 +1,5 @@
 (ns clj-ev3dev.sensors.common
-  (:require [clj-ev3dev.core :as core]
-            [clojure.edn     :as edn]))
+  (:require [clj-ev3dev.core :as core]))
 
 (defmulti #^{:private true} command-string (fn [sensor command] (:type command)))
 (defmethod command-string :value [sensor _]
@@ -11,7 +10,7 @@
 (defn read-value
   "Reads current status of the sensor. Returns a numeric value."
   [session sensor]
-  (edn/read-string (core/execute session (command-string sensor {:type :value}))))
+  (. Integer parseInt (core/execute session (command-string sensor {:type :value}))))
 
 (defn write-mode
   "Changes the mode of a sensor."

@@ -14,13 +14,3 @@
   Returns false otherwise."
   [session sensor]
   (= 0 (common/read-value session sensor)))
-
-(defn find-touch-sensor
-  "Finds a touch sensor. If the port is provided,
-  it will try and find the node name with that port.
-  If the port is not provided, it will use the default
-  port in1."
-  ([session in-port]
-   (devices/find-sensor session "touch" in-port))
-  ([session]
-   (devices/find-sensor session "touch" "in1")))

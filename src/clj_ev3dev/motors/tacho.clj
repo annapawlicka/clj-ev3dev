@@ -1,8 +1,7 @@
 (ns clj-ev3dev.motors.tacho
   (:require [clj-ev3dev.core    :as core]
             [clj-ev3dev.devices :as devices]
-            [clojure.string     :as str]
-            [clojure.edn        :as edn]))
+            [clojure.string     :as str]))
 
 (def ^{:private true} motor-api
   "Names of files which constitute the low-level motor API"
@@ -23,14 +22,14 @@
   (let [cmd (str "echo " value " > "
                          (:root-motor-path motor-api) "/"
                          motor "/" (k motor-api))]
-    (-> (core/execute session cmd)
-        edn/read-string)))
+    (->> (core/execute session cmd)
+         (. Integer parseInt))))
 
 (defn- read-state [session motor k]
-  (-> (core/execute session (str "cat "
-                                 (:root-motor-path motor-api) "/"
-                                 motor "/" (k motor-api)))
-      edn/read-string))
+  (->> (core/execute session (str "cat "
+                                  (:root-motor-path motor-api) "/"
+                                  motor "/" (k motor-api)))
+       (. Integer parseInt)))
 
 (defn- out-port-name [motor]
   (str "cat " (:root-motor-path motor-api) "/" motor "/port_name"))

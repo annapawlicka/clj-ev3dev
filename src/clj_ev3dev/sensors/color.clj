@@ -12,16 +12,6 @@
                               6 :white
                               7 :brown})
 
-(defn find-color-sensor
-  "Finds a color sensor. If in-port is provided,
-  it will search for a sensor with that port.
-  If it's not, then it will use the default
-  port in3."
-  ([session in-port]
-   (devices/find-sensor session "color" in-port))
-  ([session]
-   (devices/find-sensor session "color" "in3")))
-
 (defn toggle-mode
   "Sensor can act in three different modes: COL-COLOR,
   COL-REFLECT, COL-AMBIENT.
