@@ -57,7 +57,7 @@ Add this to the bottom of `/etc/ssh/sshd_config` : (adding
 KexAlgorithms overrides the config so you should add all default algos)
 
 ```
-KexAlgorithms curve25519-sha256 at libssh.org,diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521
+KexAlgorithms diffie-hellman-group1-sha1,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha1
 ```
 Restart openSSH server on your server and try connecting again:
 
