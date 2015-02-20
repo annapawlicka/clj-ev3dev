@@ -88,8 +88,8 @@ Infrared sensor:
 ```clojure
 
 user=> (use 'clj-ev3dev.sensors.infrared)
-user=> (def infrared-sensor (devices/find-sensor session :infrared "in4")
-user=> (read-proximity session sensor)
+user=> (def infrared-sensor (devices/find-sensor session :infrared "in4"))
+user=> (read-proximity session infrared-sensor)
        44
 
 ```
@@ -122,7 +122,7 @@ LEDs:
 
 ```clojure
 
-user=> (def red-left (find-led :red-left)) ;; :red-right, :green-left, :green-right
+user=> (def red-left (devices/find-led :red-left)) ;; :red-right, :green-left, :green-right
 user=> (use 'clj-ev3dev.led)
 user=> (read-intensity session red-left)
        0
@@ -137,7 +137,7 @@ Tacho motors:
 ```clojure
 
 user=> (use 'clj-ev3dev.motors.tacho)
-user=> (def motor-left (find-tacho-motor session "B"))
+user=> (def motor-left (devices/find-tacho-motor session "B"))
 user=> (run session motor-left 20) ;; runs the left motor with very
 slow speed
 user=> (stop session motor-left)   ;; stops the motor
