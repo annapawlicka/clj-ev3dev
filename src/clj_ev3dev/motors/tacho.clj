@@ -18,18 +18,19 @@
    :duty-cycle-read   "duty_cycle"
    :duty-cycle-write  "duty_cycle_sp"})
 
+(defn- str->num [s]
+  (. Integer parseInt s))
+
 (defn- write-state [session motor k value]
   (let [cmd (str "echo " value " > "
                          (:root-motor-path motor-api) "/"
                          motor "/" (k motor-api))]
-    (->> (core/execute session cmd)
-         (. Integer parseInt))))
+    (core/execute session cmd)))
 
 (defn- read-state [session motor k]
-  (->> (core/execute session (str "cat "
-                                  (:root-motor-path motor-api) "/"
-                                  motor "/" (k motor-api)))
-       (. Integer parseInt)))
+  (core/execute session (str "cat "
+                             (:root-motor-path motor-api) "/"
+                             motor "/" (k motor-api))))
 
 (defn- out-port-name [motor]
   (str "cat " (:root-motor-path motor-api) "/" motor "/port_name"))
@@ -39,17 +40,17 @@
   a matching device's node name or returns nil. "
   [session out-port files]
   (first (keep #(let [port (read-state session % :port)]
-                  (when (= port (str "out" out-port))
+                  (when (= port out-port)
                     %)) files)))
 
 (defn find-tacho-motor
-  "Finds tacho motor that is plugged into given port. Ports are: A, B, C, D.
+  "Finds tacho motor that is plugged into given port. Ports are: :a, :b, :c, :d.
   If no tacho motors are connected, it throws an exception."
-  [session out-port]
+  [session port]
   (let [motors (str/split-lines (core/execute session (str "ls " (:root-motor-path motor-api))))]
     (if-not (> (count motors) 0)
       (throw (Exception. "There are no tacho motors connected."))
-      (locate-in-port session out-port motors))))
+      (locate-in-port session (get devices/ports port) motors))))
 
 (defn write-speed
   "Sets the operating speed of the motor."
@@ -57,9 +58,10 @@
   (write-state session motor :speed-write speed))
 
 (defn read-speed
-  "Reads the operating speed of the motor."
+  "Reads the operating speed of the motor.
+  Returns numerical value."
   [session motor]
-  (read-state session motor :speed-read))
+  (str->num (read-state session motor :speed-read)))
 
 (defn write-power
   "Writes the operating power of the motor."
@@ -67,9 +69,10 @@
   (write-state session motor :power-write power))
 
 (defn read-power
-  "Reads the operating power of the motor."
+  "Reads the operating power of the motor.
+  Returns numerical value."
   [session motor]
-  (read-state session motor :power-read))
+  (str->num (read-state session motor :power-read)))
 
 (defn set-duty-cycle
   "Sets the duty cycle. Duty cycle should be a numerical
@@ -87,9 +90,9 @@
     (write-state session motor :duty-cycle-write value)))
 
 (defn read-duty-cycle
-  "Reads the duty cycle value."
+  "Reads the duty cycle value. Returns a numerical value."
   [session motor]
-  (read-state session motor :duty-cycle-read))
+  (str->num (read-state session motor :duty-cycle-read)))
 
 (defn set-regulation-mode
   "Toggle regulation mode of the motor to :off or :on.
@@ -135,9 +138,10 @@
   (write-state session motor :stop-mode "coast"))
 
 (defn current-position
-  "Reads the current position of the motor."
+  "Reads the current position of the motor.
+  Returns numerical value."
   [session motor]
-  (read-state session motor :position))
+  (str->num (read-state session motor :position)))
 
 (defn initialise-position
   "Set the position of the motor."

@@ -8,8 +8,8 @@
   clj-ev3dev.devices/find-led
 
   Returns a numeric value."
-  [session led]
-  (let [cmd (str "cat /sys/class/leds/" led "/brightness")]
+  [session {:keys [node]}]
+  (let [cmd (str "cat /sys/class/leds/" node "/brightness")]
     (. Integer parseInt (core/execute session cmd))))
 
 (defn max-intensity
@@ -19,8 +19,8 @@
   clj-ev3dev.devices/find-led
 
   Returns a numeric value."
-  [session led]
-  (let [cmd (str "cat /sys/class/leds/" led "/max_brightness")]
+  [session {:keys [node]}]
+  (let [cmd (str "cat /sys/class/leds/" node "/max_brightness")]
     (. Integer parseInt (core/execute session cmd))))
 
 (defn set-intensity
@@ -31,8 +31,8 @@
 
   Intensity value should not exceed
   the maximum value for the led."
-  [session led intensity]
-  (let [cmd (str "echo " intensity " > /sys/class/leds/" led "/brightness")]
+  [session {:keys [node]} intensity]
+  (let [cmd (str "echo " intensity " > /sys/class/leds/" node "/brightness")]
     (core/execute session cmd)))
 
 (defn find-mode
@@ -46,8 +46,8 @@
 
 (defn read-trigger
   "Returns a keyword representation of the set trigger."
-  [session led]
-  (let [cmd         (str "cat /sys/class/leds/" led "/trigger")
+  [session {:keys [node]}]
+  (let [cmd         (str "cat /sys/class/leds/" node "/trigger")
         trigger-str (core/execute session cmd)]
     (find-mode trigger-str)))
 
@@ -73,9 +73,9 @@
   a way of telling the EV3 about their state, so it is assumed that the
   batteries are always discharging. Therefore these triggers will
   always turn the LED off."
-  [session led mode]
+  [session {:keys [node]} mode]
   (if (contains? #{:none :mmc0 :timer :heartbeat :default-on :rfkill0} mode)
     (let [cmd (str "echo \"" (name mode) "\" > "
-                   "/sys/class/leds/" led "/trigger")]
+                   "/sys/class/leds/" node "/trigger")]
       (core/execute session cmd))
     (throw (Exception. "Trigger must be one of the supported modes: :none, :mmc0, :timer, :heartbeat :default-on, :rfkill0."))))

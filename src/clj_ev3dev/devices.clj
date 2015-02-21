@@ -14,6 +14,78 @@
                     :color    "in3"
                     :infrared "in4"})
 
+(def ports {:a "outA"
+            :b "outB"
+            :c "outC"
+            :d "outD"
+            :1 "in1"
+            :2 "in2"
+            :3 "in3"
+            :4 "in4"})
+
+(def modes {:color    #{:col-color :col-ambient :col-reflect}
+            :infrared #{:ir-prox :ir-seek :ir-remote :ir-rem-a :ir-s-alt}})
+
+(defn- str->keyword
+  "Converts a string to lower case keyword with
+  all spaces repalced with underscores."
+  [s]
+  (-> s
+      (str/replace #" " "_")
+      (str/lower-case)
+      keyword))
+
+(defn- keyword->str
+  "Converts keyqord to upper-case string."
+  [k]
+  (-> k
+      name
+      str/upper-case))
+
+(defmulti #^{:private true} command-string (fn [sensor command] (:type command)))
+
+(defmethod command-string :read-value [{:keys [node]} _]
+  (str "cat /sys/class/msensor/" node "/value0"))
+
+(defmethod command-string :read-mode [{:keys [node]} _]
+  (str "cat /sys/class/msensor/" node "/mode"))
+
+(defmethod command-string :read-units [{:keys [node]} _]
+  (str "cat /sys/class/msensor/" node "/units"))
+
+(defmethod command-string :write-value [{:keys [node]} command]
+  (str "echo \"" (:value command) "\" > /sys/class/msensor/" node "/value"))
+
+(defmethod command-string :write-mode [{:keys [node]} command]
+  (str "echo \"" (:value command) "\" > /sys/class/msensor/" node "/mode"))
+
+(defn read-value
+  "Reads current status of the sensor. Returns a numeric value."
+  [session sensor]
+  (let [v (core/execute session (command-string sensor {:type :read-value}))]
+    (when-not (empty? v)
+      (. Integer parseInt v))))
+
+(defn read-mode
+  "Reads current mode of the sensor. Returns a keyword."
+  [session sensor]
+  (str->keyword (core/execute session (command-string sensor {:type :read-mode}))))
+
+(defn valid-mode? [sensor mode]
+  (contains? (get modes (:type sensor)) mode))
+
+(defn write-mode
+  "Changes the mode of a sensor."
+  [session sensor mode]
+  (if (valid-mode? sensor mode)
+    (core/execute session (command-string sensor {:type :write-mode :value (keyword->str mode)}))
+    (throw (Exception. "Please provide a valid mode for this sensor."))))
+
+(defn read-units
+  "Returns the units in which the sensor oeprates."
+  [session sensor]
+  (str->keyword (core/execute session (command-string sensor {:type :read-units}))))
+
 (defn- port-name [sensor]
   (str "cat /sys/class/msensor/" sensor "/port_name"))
 
@@ -32,26 +104,22 @@
                     %)) files)))
 
 (defn- find-device
-  [session cmd device-type in-port]
-  (let [files (str/split-lines (core/execute session cmd))]
-    (locate-in-port session device-type (or in-port (get default-ports device-type)) files)))
+  [session cmd device-type port]
+  (let [files (str/split-lines (core/execute session cmd))
+        port  (if port (get ports port) (get default-ports device-type))]
+    {:type device-type :node (locate-in-port session device-type port files)}))
 
 (defn find-sensor
   "Finds sensor's node name by searching for
   sensor type and port that it's plugged in.
 
   Sensor types: :touch, :color, :infrared.
-  Ports are: in1, in2, in3, in4."
-  [session sensor-type & [in-port]]
-  (find-device session "ls /sys/class/msensor" sensor-type in-port))
-
-(defn find-tacho-motor
-  "Finds tacho motor's node name by searching for
-  a device of \"tacho\" type with a port that it's plugged into.
-
-  Ports that are usually used in EV3: outB, outC."
-  [session in-port]
-  (find-device session "ls /sys/class/tacho-motor" "tacho" in-port))
+  Ports are: :1, :2, :3, :4."
+  [session sensor-type & [port]]
+  (let [device (find-device session "ls /sys/class/msensor" sensor-type port)]
+    (if (:node device)
+      device
+      (throw (Exception. "Could not locate the device. Please check the ports.")))))
 
 (defn find-led
   "Returns node name for a given led color and side.
@@ -60,4 +128,4 @@
 
   Led types: :green-left, :green-right, :red-left, :red-right."
   [led-type]
-  (get type-resolver led-type))
+  {:type led-type :node (get type-resolver led-type)})

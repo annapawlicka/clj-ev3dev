@@ -77,7 +77,8 @@ user=> (def session (create-session {:ip-address "192.168.2.3" :username
 
 ```
 
-To find node names of connected sensors and motors:
+To find node names of connected sensors and motors,
+to read and write mode:
 
 ```clojure
 user=> (require '[clj-ev3dev.devices :as devices])
@@ -87,9 +88,9 @@ Infrared sensor:
 
 ```clojure
 
-user=> (use 'clj-ev3dev.sensors.infrared)
-user=> (def infrared-sensor (devices/find-sensor session :infrared "in4"))
-user=> (read-proximity session infrared-sensor)
+user=> (require '[clj-ev3dev.sensors.infrared :as infrared])
+user=> (def infrared-sensor (devices/find-sensor session :infrared :4))
+user=> (infrared/read-proximity session infrared-sensor)
        44
 
 ```
@@ -98,9 +99,9 @@ Touch sensor:
 
 ```clojure
 
-user=> (use 'clj-ev3dev.sensors.touch)
-user=> (def touch-sensor (devices/find-sensor session :touch "in1"))
-user=> (pressed? session touch-sensor)
+user=> (require '[clj-ev3dev.sensors.touch :as touch])
+user=> (def touch-sensor (devices/find-sensor session :touch :1))
+user=> (touch/pressed? session touch-sensor)
        true
 
 ```
@@ -110,11 +111,14 @@ Color sensor:
 
 ```clojure
 
-user=> (use 'clj-ev3dev.sensors.color)
-user=> (def color-sensor (devices/find-sensor session :color "in3"))
-user=> (read-color session color-sensor)
+user=> (require '[clj-ev3dev.sensors.color :as color])
+user=> (def color-sensor (devices/find-sensor session :color :3))
+user=> (devices/read-mode session color-sensor)
+user=> :col-color
+user=> (color/read-color session color-sensor)
        :red
-user=> (read-reflected-light-intensity session color-sensor)
+user=> (devices/write-mode session color-sensor :col-reflect)
+user=> (color/read-reflected-light-intensity session color-sensor)
        23
 ```
 
@@ -123,12 +127,12 @@ LEDs:
 ```clojure
 
 user=> (def red-left (devices/find-led :red-left)) ;; :red-right, :green-left, :green-right
-user=> (use 'clj-ev3dev.led)
-user=> (read-intensity session red-left)
+user=> (require '[clj-ev3dev.led :as led])
+user=> (led/read-intensity session red-left)
        0
-user=> (max-intensity session red-left)
+user=> (led/max-intensity session red-left)
        255
-user=> (set-intensity session red-left 75)
+user=> (led/set-intensity session red-left 75)
 
 ```
 
@@ -136,11 +140,11 @@ Tacho motors:
 
 ```clojure
 
-user=> (use 'clj-ev3dev.motors.tacho)
-user=> (def motor-left (devices/find-tacho-motor session "B"))
-user=> (run session motor-left 20) ;; runs the left motor with very
-slow speed
-user=> (stop session motor-left)   ;; stops the motor
+user=> (require '[clj-ev3dev.motors.tacho :as tacho])
+user=> (def motor-left (tacho/find-tacho-motor session :b))
+;; runs the left motor with very  slow speed
+user=> (tacho/run session motor-left 20)
+user=> (tacho/stop session motor-left)   ;; stops the motor
 ```
 
 ## License
