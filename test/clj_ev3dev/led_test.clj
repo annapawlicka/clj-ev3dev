@@ -1,5 +1,5 @@
 (ns clj-ev3dev.led-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test   :refer :all]
             [clj-ev3dev.led :refer :all]))
 
 (deftest find-mode-test

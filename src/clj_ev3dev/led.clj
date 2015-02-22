@@ -1,5 +1,7 @@
 (ns clj-ev3dev.led
-  (:require [clj-ev3dev.core :as core]))
+  (:require [clj-ev3dev.devices :as devices]))
+
+(def led-path "/sys/class/leds/")
 
 (defn read-intensity
   "Reads the current brigtness of the led.
@@ -8,9 +10,8 @@
   clj-ev3dev.devices/find-led
 
   Returns a numeric value."
-  [session {:keys [node]}]
-  (let [cmd (str "cat /sys/class/leds/" node "/brightness")]
-    (. Integer parseInt (core/execute session cmd))))
+  [sensor]
+  (. Integer parseInt (devices/read-attr led-path sensor :brightness)))
 
 (defn max-intensity
   "Reads maximum brightness of the led.
@@ -19,9 +20,8 @@
   clj-ev3dev.devices/find-led
 
   Returns a numeric value."
-  [session {:keys [node]}]
-  (let [cmd (str "cat /sys/class/leds/" node "/max_brightness")]
-    (. Integer parseInt (core/execute session cmd))))
+  [sensor]
+  (. Integer parseInt (devices/read-attr led-path sensor :max_brightness)))
 
 (defn set-intensity
   "Sets the brightness of the led.
@@ -31,9 +31,8 @@
 
   Intensity value should not exceed
   the maximum value for the led."
-  [session {:keys [node]} intensity]
-  (let [cmd (str "echo " intensity " > /sys/class/leds/" node "/brightness")]
-    (core/execute session cmd)))
+  [sensor intensity]
+  (devices/write-attr led-path sensor :brightness intensity))
 
 (defn find-mode
   "Finds selected mode, strips it off square
@@ -46,9 +45,8 @@
 
 (defn read-trigger
   "Returns a keyword representation of the set trigger."
-  [session {:keys [node]}]
-  (let [cmd         (str "cat /sys/class/leds/" node "/trigger")
-        trigger-str (core/execute session cmd)]
+  [sensor]
+  (let [trigger-str (devices/read-attr led-path sensor :trigger)]
     (find-mode trigger-str)))
 
 (defn set-trigger
@@ -73,9 +71,7 @@
   a way of telling the EV3 about their state, so it is assumed that the
   batteries are always discharging. Therefore these triggers will
   always turn the LED off."
-  [session {:keys [node]} mode]
+  [sensor mode]
   (if (contains? #{:none :mmc0 :timer :heartbeat :default-on :rfkill0} mode)
-    (let [cmd (str "echo \"" (name mode) "\" > "
-                   "/sys/class/leds/" node "/trigger")]
-      (core/execute session cmd))
+    (devices/write-attr led-path sensor :trigger (name mode))
     (throw (Exception. "Trigger must be one of the supported modes: :none, :mmc0, :timer, :heartbeat :default-on, :rfkill0."))))

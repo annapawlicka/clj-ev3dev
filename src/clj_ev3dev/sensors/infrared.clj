@@ -1,6 +1,5 @@
 (ns clj-ev3dev.sensors.infrared
-  (:require [clj-ev3dev.devices  :as devices]
-            [clj-ev3dev.core     :as core]))
+  (:require [clj-ev3dev.devices :as devices]))
 
 (defn read-proximity
   "Reads the proximity value (in range 0 - 100)
@@ -20,5 +19,5 @@
 
   please run:
   (devices/write-mode session sensor :ir-prox)"
-  [session sensor]
-  (devices/read-value session sensor))
+  [sensor]
+  (devices/read-value sensor))

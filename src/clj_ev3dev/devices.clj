@@ -1,6 +1,8 @@
 (ns clj-ev3dev.devices
-  (:require [clj-ev3dev.core :as core]
-            [clojure.string  :as str]))
+  (:require [clojure.string  :as str]
+            [clojure.java.io :as io]))
+
+(def sensor-path "/sys/class/lego-sensor/")
 
 (def type-resolver {:touch       "lego-ev3-touch"
                     :color       "ev3-uart-29"
@@ -26,6 +28,9 @@
 (def modes {:color    #{:col-color :col-ambient :col-reflect}
             :infrared #{:ir-prox :ir-seek :ir-remote :ir-rem-a :ir-s-alt}})
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers
+
 (defn- str->keyword
   "Converts a string to lower case keyword with
   all spaces repalced with underscores."
@@ -42,72 +47,87 @@
       name
       str/upper-case))
 
-(defmulti #^{:private true} command-string (fn [sensor command] (:type command)))
+(defn- build-path
+  "Creates a path to an attribute k, where k
+  is a keyword.
+  Returns a string."
+  ([sensor k]
+   (str sensor-path (:node sensor) "/" (name k)))
+  ([path sensor k]
+   (str path (:node sensor) "/" (name k))))
 
-(defmethod command-string :read-value [{:keys [node]} _]
-  (str "cat /sys/class/msensor/" node "/value0"))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Attributes
 
-(defmethod command-string :read-mode [{:keys [node]} _]
-  (str "cat /sys/class/msensor/" node "/mode"))
+(defn write-attr
+  "Writes new value for a given attribute."
+  ([sensor attr value]
+   (spit (str sensor-path (:node sensor) "/" (name attr)) value))
+  ([path sensor attr value]
+   (spit (str path (:node sensor) "/" (name attr)) value)))
 
-(defmethod command-string :read-units [{:keys [node]} _]
-  (str "cat /sys/class/msensor/" node "/units"))
+(defn read-attr
+  "Reads in file of an attribute attr and trims new line."
+  ([sensor attr]
+   (str/trim-newline (slurp (build-path sensor attr))))
+  ([path sensor attr]
+   (str/trim-newline (slurp (build-path path sensor attr)))))
 
-(defmethod command-string :write-value [{:keys [node]} command]
-  (str "echo \"" (:value command) "\" > /sys/class/msensor/" node "/value"))
+(defn read-port-name [sensor]
+  (read-attr sensor :port_name))
 
-(defmethod command-string :write-mode [{:keys [node]} command]
-  (str "echo \"" (:value command) "\" > /sys/class/msensor/" node "/mode"))
+(defn read-driver-name [sensor]
+  (read-attr sensor :driver_name))
 
 (defn read-value
   "Reads current status of the sensor. Returns a numeric value."
-  [session sensor]
-  (let [v (core/execute session (command-string sensor {:type :read-value}))]
+  [sensor]
+  (let [v (read-attr sensor :value0)]
     (when-not (empty? v)
       (. Integer parseInt v))))
 
 (defn read-mode
   "Reads current mode of the sensor. Returns a keyword."
-  [session sensor]
-  (str->keyword (core/execute session (command-string sensor {:type :read-mode}))))
+  [sensor]
+  (str->keyword (read-attr sensor :mode)))
 
-(defn valid-mode? [sensor mode]
+(defn read-units
+  "Returns the units in which the sensor oeprates."
+  [sensor]
+  (str->keyword (read-attr sensor :units)))
+
+(defn- valid-mode? [sensor mode]
   (contains? (get modes (:type sensor)) mode))
 
 (defn write-mode
   "Changes the mode of a sensor."
-  [session sensor mode]
+  [sensor mode]
   (if (valid-mode? sensor mode)
-    (core/execute session (command-string sensor {:type :write-mode :value (keyword->str mode)}))
+    (write-attr sensor :mode (keyword->str mode))
     (throw (Exception. "Please provide a valid mode for this sensor."))))
 
-(defn read-units
-  "Returns the units in which the sensor oeprates."
-  [session sensor]
-  (str->keyword (core/execute session (command-string sensor {:type :read-units}))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mapping
 
-(defn- port-name [sensor]
-  (str "cat /sys/class/msensor/" sensor "/port_name"))
-
-(defn- type-name [sensor]
-  (str "cat /sys/class/msensor/" sensor "/name"))
-
-(defn- locate-in-port
+(defn locate-in-port
   "Searches through devices directory and either returns
   a matching device's node name or returns nil."
-  [session device-type in-port files]
-  (first (keep #(let [port  (core/execute session (port-name %))
-                      typ   (core/execute session (type-name %))
-                      class (get type-resolver device-type)]
-                  (when (and (= in-port port)
-                             (= class typ))
-                    %)) files)))
+  [device-type in-port]
+  (let [dir (io/file sensor-path)]
+    (first (keep #(when (.isDirectory %)
+                    (let [n (str/trim-newline (.getName %))]
+                      (when (.startsWith n "sensor")
+                        (let [port  (read-port-name {:node n})
+                              typ   (read-driver-name {:node n})
+                              class (get type-resolver device-type)]
+                          (when (and (= in-port port)
+                                     (= class typ))
+                            n))))) (file-seq dir)))))
 
 (defn- find-device
-  [session cmd device-type port]
-  (let [files (str/split-lines (core/execute session cmd))
-        port  (if port (get ports port) (get default-ports device-type))]
-    {:type device-type :node (locate-in-port session device-type port files)}))
+  [device-type port]
+  (let [port  (if port (get ports port) (get default-ports device-type))]
+    {:type device-type :node (locate-in-port device-type port)}))
 
 (defn find-sensor
   "Finds sensor's node name by searching for
@@ -115,8 +135,8 @@
 
   Sensor types: :touch, :color, :infrared.
   Ports are: :1, :2, :3, :4."
-  [session sensor-type & [port]]
-  (let [device (find-device session "ls /sys/class/msensor" sensor-type port)]
+  [sensor-type & [port]]
+  (let [device (find-device sensor-type port)]
     (if (:node device)
       device
       (throw (Exception. "Could not locate the device. Please check the ports.")))))

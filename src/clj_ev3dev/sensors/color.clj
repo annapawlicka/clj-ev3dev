@@ -1,6 +1,5 @@
 (ns clj-ev3dev.sensors.color
-  (:require [clj-ev3dev.devices :as devices]
-            [clj-ev3dev.core    :as core]))
+  (:require [clj-ev3dev.devices :as devices]))
 
 (def ^{:private true} colors {0 :none
                               1 :black
@@ -28,8 +27,8 @@
 
   Mode is not being checked by default to avoid unnecessary
   roundtrip when e.g. detecting color of the floor while moving."
-  [session sensor]
-  (get colors (devices/read-value session sensor)))
+  [sensor]
+  (get colors (devices/read-value sensor)))
 
 (defn read-reflected-light-intensity
   "Reads the reflected light intensity in range [0, 100].
@@ -45,8 +44,8 @@
 
   Mode is not being checked by default to avoid unnecessary
   roundtrip when e.g. detecting color of the floor while moving."
-  [session sensor]
-  (devices/read-value session sensor))
+  [sensor]
+  (devices/read-value sensor))
 
 (defn read-ambient-light-intensity
   "Reads the ambient light intensity in range [0, 100].
@@ -62,5 +61,5 @@
 
   Mode is not being checked by default to avoid unnecessary
   roundtrip when e.g. detecting color of the floor while moving."
-  [session sensor]
-  (devices/read-value session sensor))
+  [sensor]
+  (devices/read-value sensor))
