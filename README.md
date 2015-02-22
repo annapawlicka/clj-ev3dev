@@ -24,7 +24,7 @@ to copy your Clojure controller to the brick and run it.
 
 ### Clojure
 
-You need to install java and clojure on EV3.
+First install java on EV3.
 To run your Clojure robot controller, you need to create an uberjar
 and copy it to ev3. Then you can run it using the following command:
 
