@@ -36,19 +36,16 @@
   [out-port motors]
   (first (keep #(when (.isDirectory %)
                   (let [n (str/trim-newline (.getName %))]
-                    (when (.startsWith n "sensor")
-                      (let [port  (devices/read-port-name {:node n})]
+                    (when (.startsWith n "motor")
+                      (let [port (devices/read-port-name {:node n})]
                         (when (= out-port port)
                           n))))) motors)))
 
 (defn find-tacho-motor
-  "Finds tacho motor that is plugged into given port. Ports are: :a, :b, :c, :d.
-  If no tacho motors are connected, it throws an exception."
+  "Finds tacho motor that is plugged into given port. Ports are: :a, :b, :c, :d."
   [port]
   (let [motors (file-seq (io/file (:root-motor-path motor-api)))]
-    (if-not (> (count motors) 0)
-      (throw (Exception. "There are no tacho motors connected."))
-      (locate-in-port (get devices/ports port) motors))))
+    (locate-in-port (get devices/ports port) motors)))
 
 (defn write-speed
   "Sets the operating speed of the motor."
