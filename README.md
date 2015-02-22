@@ -40,6 +40,12 @@ If you'd like to play with ev3 first, or you're ok with running it
 remotely, `clj-ev3dev-remote` will execute all your commands through
 ssh.
 
+### Performance
+While you're writing your controller, you have to keep in mind
+ev3's specs. The startup time takes a few minutes, and if you're
+going to do any memory heavy operations you're very
+likely going to see `java.lang.OutOfMemoryError: Java heap space`.
+
 ## Usage
 
 Add `clj-ev3dev` to your project's dependencies:
@@ -117,11 +123,65 @@ user=> (def motor-left (tacho/find-tacho-motor :b))
 user=> (tacho/run motor-left 20)
 user=> (tacho/stop motor-left)   ;; stops the motor
 ```
-### Performance
-While you're writing your controller, you have to keep in mind
-ev3's specs. The startup time takes a few minutes, and if you're
-going to do any memory heavy operations you're very
-likely going to see `java.lang.OutOfMemoryError: Java heap space`.
+
+### Example application
+
+```clojure
+(ns sample-controller.core
+  (:require [clj-ev3dev.led              :as led]
+            [clj-ev3dev.devices          :as devices]
+            [clj-ev3dev.motors.tacho     :as tacho]
+            [clj-ev3dev.sensors.color    :as color]
+            [clj-ev3dev.sensors.infrared :as infrared]
+            [clj-ev3dev.sensors.touch    :as touch])
+  (:gen-class :main true))
+
+(defn test-leds []
+  (let [left-red    (devices/find-led :red-left)
+        left-green  (devices/find-led :green-left)
+        right-red   (devices/find-led :red-right)
+        right-green (devices/find-led :green-right)]
+    (println "LEDS")
+    (led/set-trigger left-red :heartbeat)
+    (led/set-trigger left-red :none)
+    (led/set-trigger left-green :default-on)))
+
+(defn test-motors []
+  (println "MOTORS")
+  (let [left-motor  (tacho/find-tacho-motor :b)
+        right-motor (tacho/find-tacho-motor :c)]
+    (tacho/run left-motor 20)
+    (tacho/run right-motor 20)
+    (tacho/stop left-motor)
+    (tacho/stop right-motor)))
+
+(defn test-color-sensor []
+  (println "COLOR")
+  (let [color-sensor (devices/find-sensor :color :2)]
+    (devices/write-mode color-sensor :col-color)
+    (println "Color: " (color/read-color color-sensor))))
+
+(defn test-infrared-sensor []
+  (println "INFRARED")
+  (let [infrared-sensor (devices/find-sensor :infrared :4)]
+    (println "Proximity: " (infrared/read-proximity infrared-sensor))))
+
+(defn test-touch-sensor []
+  (println "TOUCH")
+  (let [touch-sensor (devices/find-sensor :touch :1)]
+    (while (not (touch/pressed? touch-sensor))
+      (println "Waiting for you to press me o.0")
+      (Thread/sleep 1000))))
+
+(defn -main
+  "The application's main function"
+  [& args]
+  (test-leds)
+  (test-motors)
+  (test-color-sensor)
+  (test-infrared-sensor)
+  (test-touch-sensor))
+```
 
 ## License
 

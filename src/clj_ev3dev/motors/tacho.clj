@@ -1,11 +1,11 @@
 (ns clj-ev3dev.motors.tacho
   (:require [clj-ev3dev.devices :as devices]
             [clojure.string     :as str]
-            [clojure.java.io    :as io]))
+            [clojure.java.shell :as shell]))
 
-(def ^{:private true} motor-api
+(def motor-api
   "Names of files which constitute the low-level motor API"
-  {:root-motor-path   "/sys/class/tacho-motor"
+  {:root-motor-path   "/sys/class/tacho-motor/"
    :port              "port_name"
    :regulation-mode   "regulation_mode"
    :speed-read        "pulses_per_second"
@@ -21,30 +21,25 @@
 (defn- str->num [s]
   (. Integer parseInt s))
 
-(defn- write-state [motor k value]
-  (spit (str (:root-motor-path motor-api) "/" motor "/" (k motor-api)) value))
+(defn write-state [motor k value]
+  (spit (str (:root-motor-path motor-api) motor "/" (k motor-api)) value))
 
-(defn- read-state [motor k]
-  (str/trim-newline (slurp (:root-motor-path motor-api) "/" motor "/" (k motor-api))))
-
-(defn- out-port-name [motor]
-  (str "cat " (:root-motor-path motor-api) "/" motor "/port_name"))
+(defn read-state [motor k]
+  (let [path (str (:root-motor-path motor-api) motor "/" (k motor-api))]
+    (str/trim-newline (slurp path))))
 
 (defn locate-in-port
   "Searches through motors directory and either returns
   a matching device's node name or returns nil."
   [out-port motors]
-  (first (keep #(when (.isDirectory %)
-                  (let [n (str/trim-newline (.getName %))]
-                    (when (.startsWith n "motor")
-                      (let [port (devices/read-port-name {:node n})]
-                        (when (= out-port port)
-                          n))))) motors)))
+  (first (keep #(let [port (read-state % :port)]
+                  (when (= out-port port)
+                    %)) motors)))
 
 (defn find-tacho-motor
   "Finds tacho motor that is plugged into given port. Ports are: :a, :b, :c, :d."
   [port]
-  (let [motors (file-seq (io/file (:root-motor-path motor-api)))]
+  (let [motors (str/split-lines (:out (clojure.java.shell/sh "ls" (:root-motor-path motor-api))))]
     (locate-in-port (get devices/ports port) motors)))
 
 (defn write-speed
