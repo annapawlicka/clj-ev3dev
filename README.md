@@ -8,8 +8,6 @@ Once the library is more stable it will drop `-SNAPSHOT`.
 [clj-ev3dev "0.1.0-SNAPSHOT"]
 ```
 
-Docs can be found [here](http://annapawlicka.github.io/clj-ev3dev).
-
 ## Getting Started
 
 ### ev3dev
@@ -28,7 +26,7 @@ to copy your Clojure controller to the brick and run it.
 
 You need to install java and clojure on EV3.
 To run your Clojure robot controller, you need to create an uberjar
-and copy it to ev3. Then you can start it using the following command:
+and copy it to ev3. Then you can run it using the following command:
 
 ```
 java -jar name-of-your-standalone.jar
@@ -41,8 +39,6 @@ cumbersome. For this reason I've created
 If you'd like to play with ev3 first, or you're ok with running it
 remotely, `clj-ev3dev-remote` will execute all your commands through
 ssh.
-The API in both libraries is exactly the same.
-
 
 ## Usage
 
@@ -121,6 +117,11 @@ user=> (def motor-left (tacho/find-tacho-motor :b))
 user=> (tacho/run motor-left 20)
 user=> (tacho/stop motor-left)   ;; stops the motor
 ```
+### Performance
+While you're writing your controller, you have to keep in mind
+ev3's specs. The startup time takes a few minutes, and if you're
+going to do any memory heavy operations you're very
+likely going to see `java.lang.OutOfMemoryError: Java heap space`.
 
 ## License
 
