@@ -8,4 +8,4 @@
                            :port            "port_name"}]
     (testing "Testing read-state."
       (is (= "outB"
-             (read-state "motor0" :port))))))
+             (read-state {:env :local} "motor0" :port))))))

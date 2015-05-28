@@ -1,8 +1,6 @@
 (ns clj-ev3dev.led
   (:require [clj-ev3dev.devices :as devices]))
 
-(def led-path "/sys/class/leds/")
-
 (defn read-intensity
   "Reads the current brigtness of the led.
   Led passed has to be the result of
@@ -10,8 +8,8 @@
   clj-ev3dev.devices/find-led
 
   Returns a numeric value."
-  [sensor]
-  (. Integer parseInt (devices/read-attr led-path sensor :brightness)))
+  [config sensor]
+  (. Integer parseInt (devices/read-attr config sensor :brightness)))
 
 (defn max-intensity
   "Reads maximum brightness of the led.
@@ -20,8 +18,8 @@
   clj-ev3dev.devices/find-led
 
   Returns a numeric value."
-  [sensor]
-  (. Integer parseInt (devices/read-attr led-path sensor :max_brightness)))
+  [config sensor]
+  (. Integer parseInt (devices/read-attr config sensor :max_brightness)))
 
 (defn set-intensity
   "Sets the brightness of the led.
@@ -31,8 +29,8 @@
 
   Intensity value should not exceed
   the maximum value for the led."
-  [sensor intensity]
-  (devices/write-attr led-path sensor :brightness intensity))
+  [config sensor intensity]
+  (devices/write-attr config sensor :brightness intensity))
 
 (defn find-mode
   "Finds selected mode, strips it off square
@@ -45,8 +43,8 @@
 
 (defn read-trigger
   "Returns a keyword representation of the set trigger."
-  [sensor]
-  (let [trigger-str (devices/read-attr led-path sensor :trigger)]
+  [config sensor]
+  (let [trigger-str (devices/read-attr config sensor :trigger)]
     (find-mode trigger-str)))
 
 (defn set-trigger
@@ -71,7 +69,7 @@
   a way of telling the EV3 about their state, so it is assumed that the
   batteries are always discharging. Therefore these triggers will
   always turn the LED off."
-  [sensor mode]
+  [config sensor mode]
   (if (contains? #{:none :mmc0 :timer :heartbeat :default-on :rfkill0} mode)
-    (devices/write-attr led-path sensor :trigger (name mode))
+    (devices/write-attr config sensor :trigger (name mode))
     (throw (Exception. "Trigger must be one of the supported modes: :none, :mmc0, :timer, :heartbeat :default-on, :rfkill0."))))
