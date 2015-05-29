@@ -23,7 +23,7 @@
   you can check the mode yourself:
   (devices/read-mode config sensor)
   and, if required, update it:
-  (devices/set-mode config sensor :col-color)
+  (devices/write-mode config sensor :col-color)
 
   Mode is not being checked by default to avoid unnecessary
   roundtrip when e.g. detecting color of the floor while moving."
@@ -40,7 +40,7 @@
   you can check the mode yourself:
   (devices/read-mode session sensor)
   and, if required, update it:
-  (devices/set-mode session sensor :col-reflect)
+  (devices/write-mode session sensor :col-reflect)
 
   Mode is not being checked by default to avoid unnecessary
   roundtrip when e.g. detecting color of the floor while moving."
@@ -57,7 +57,7 @@
   you can check the mode yourself:
   (devices/read-mode config sensor)
   and, if required, update it:
-  (devices/set-mode config sensor :col-ambient)
+  (devices/write-mode config sensor :col-ambient)
 
   Mode is not being checked by default to avoid unnecessary
   roundtrip when e.g. detecting color of the floor while moving."

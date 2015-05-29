@@ -48,10 +48,19 @@ likely going to see `java.lang.OutOfMemoryError: Java heap space`.
 
 ## Usage
 
+### Running on the robot itself (local)
+
 Add `clj-ev3dev` to your project's dependencies:
 
 ```clojure
 [clj-ev3dev "0.1.0-SNAPSHOT"]
+```
+
+You need create a configuration map that will specify the environment
+that you want to use and will be passed to all functions:
+
+```clojure
+user=> (def config {:env :local})
 ```
 
 To find node names of connected sensors and motors,
@@ -66,8 +75,9 @@ Infrared sensor:
 ```clojure
 
 user=> (require '[clj-ev3dev.sensors.infrared :as infrared])
-user=> (def infrared-sensor (devices/find-sensor :infrared :4))
-user=> (infrared/read-proximity infrared-sensor)
+user=> (def infrared-sensor (devices/find-sensor config {:device-type
+:infrared :port :4}))
+user=> (infrared/read-proximity config infrared-sensor)
        44
 
 ```
@@ -77,8 +87,9 @@ Touch sensor:
 ```clojure
 
 user=> (require '[clj-ev3dev.sensors.touch :as touch])
-user=> (def touch-sensor (devices/find-sensor :touch :1))
-user=> (touch/pressed? touch-sensor)
+user=> (def touch-sensor (devices/find-sensor config {:device-type
+:touch :port :1}))
+user=> (touch/pressed? config touch-sensor)
        true
 
 ```
@@ -89,13 +100,14 @@ Color sensor:
 ```clojure
 
 user=> (require '[clj-ev3dev.sensors.color :as color])
-user=> (def color-sensor (devices/find-sensor :color :3))
-user=> (devices/read-mode color-sensor)
+user=> (def color-sensor (devices/find-sensor config {:device-type
+:color :port :3}))
+user=> (devices/read-mode config color-sensor)
 user=> :col-color
-user=> (color/read-color color-sensor)
+user=> (color/read-color config color-sensor)
        :red
-user=> (devices/write-mode color-sensor :col-reflect)
-user=> (color/read-reflected-light-intensity color-sensor)
+user=> (devices/write-mode config color-sensor :col-reflect)
+user=> (color/read-reflected-light-intensity config color-sensor)
        23
 ```
 
@@ -105,11 +117,11 @@ LEDs:
 
 user=> (def red-left (devices/find-led :red-left)) ;; :red-right, :green-left, :green-right
 user=> (require '[clj-ev3dev.led :as led])
-user=> (led/read-intensity red-left)
+user=> (led/read-intensity config red-left)
        0
-user=> (led/max-intensity red-left)
+user=> (led/max-intensity config red-left)
        255
-user=> (led/set-intensity red-left 75)
+user=> (led/set-intensity config red-left 75)
 
 ```
 
@@ -118,13 +130,13 @@ Tacho motors:
 ```clojure
 
 user=> (require '[clj-ev3dev.motors.tacho :as tacho])
-user=> (def motor-left (tacho/find-tacho-motor :b))
+user=> (def motor-left (tacho/find-tacho-motor config :b))
 ;; runs the left motor with very  slow speed
-user=> (tacho/run motor-left 20)
-user=> (tacho/stop motor-left)   ;; stops the motor
+user=> (tacho/run config motor-left 20)
+user=> (tacho/stop config motor-left)   ;; stops the motor
 ```
 
-### Example application
+#### Example application
 
 ```clojure
 (ns sample-controller.core
@@ -136,52 +148,156 @@ user=> (tacho/stop motor-left)   ;; stops the motor
             [clj-ev3dev.sensors.touch    :as touch])
   (:gen-class :main true))
 
-(defn test-leds []
+(defn test-leds [config]
   (let [left-red    (devices/find-led :red-left)
         left-green  (devices/find-led :green-left)
         right-red   (devices/find-led :red-right)
         right-green (devices/find-led :green-right)]
     (println "LEDS")
-    (led/set-trigger left-red :heartbeat)
-    (led/set-trigger left-red :none)
-    (led/set-trigger left-green :default-on)))
+    (led/set-trigger config left-red :heartbeat)
+    (led/set-trigger config left-red :none)
+    (led/set-trigger config left-green :default-on)))
 
-(defn test-motors []
+(defn test-motors [config]
   (println "MOTORS")
-  (let [left-motor  (tacho/find-tacho-motor :b)
-        right-motor (tacho/find-tacho-motor :c)]
-    (tacho/run left-motor 20)
-    (tacho/run right-motor 20)
-    (tacho/stop left-motor)
-    (tacho/stop right-motor)))
+  (let [left-motor  (tacho/find-tacho-motor config :b)
+        right-motor (tacho/find-tacho-motor config :c)]
+    (tacho/run config left-motor 20)
+    (tacho/run config right-motor 20)
+    (tacho/stop config left-motor)
+    (tacho/stop config right-motor)))
 
-(defn test-color-sensor []
+(defn test-color-sensor [config]
   (println "COLOR")
-  (let [color-sensor (devices/find-sensor :color :2)]
-    (devices/write-mode color-sensor :col-color)
-    (println "Color: " (color/read-color color-sensor))))
+  (let
+  [color-sensor (devices/find-sensor config {:device-type :color :port :two})]
+    (devices/write-mode config color-sensor :col-color)
+    (println "Color: " (color/read-color config color-sensor))))
 
-(defn test-infrared-sensor []
+(defn test-infrared-sensor [config]
   (println "INFRARED")
-  (let [infrared-sensor (devices/find-sensor :infrared :4)]
-    (println "Proximity: " (infrared/read-proximity infrared-sensor))))
+  (let [infrared-sensor (devices/find-sensor config {:device-type :infrared :port :four})]
+    (println "Proximity: " (infrared/read-proximity config infrared-sensor))))
 
-(defn test-touch-sensor []
+(defn test-touch-sensor [config]
   (println "TOUCH")
-  (let [touch-sensor (devices/find-sensor :touch :1)]
-    (while (not (touch/pressed? touch-sensor))
+  (let [touch-sensor (devices/find-sensor config
+                                         {:device-type :touch
+                                         :port :one})]
+  (if touch-sensor
+    (while (not (touch/pressed? config touch-sensor))
       (println "Waiting for you to press me o.0")
-      (Thread/sleep 1000))))
+      (Thread/sleep 1000))
+    (println "Could not find touch sensor."))))
 
 (defn -main
   "The application's main function"
   [& args]
-  (test-leds)
-  (test-motors)
-  (test-color-sensor)
-  (test-infrared-sensor)
-  (test-touch-sensor))
+  (let [config {:env :local}]
+    (test-leds config)
+    (test-motors config)
+    (test-color-sensor config)
+    (test-infrared-sensor config)
+    (test-touch-sensor config)))
 ```
+
+### Comunicating over ssh (remote)
+
+This option allows you to control EV3 remotely, which means you can
+run your program on your machine, try things out, and once you're
+happy with the results you can build uberjar replacing `:env :remote`
+with `:env :local` in your config map and run in on the brick. A word of warning: memory hungry operations will run ok on you machine but may not run at all on ev3. Keep its specs in mind. You can also just stick to running it locally. Whatever works for you :)
+
+Remote mode wraps shell commands and sends them over ssh. And although you can send those commands yourself, doing `cat /sys/class/lego-sensor/sensor0/value0` is tedious, especially that each time you boot EV3 the devices (sensors & motors) are mapped to different nodes that do not correspond to the in ports. It’s much easier when you have a higher-level library to use that handles that for you.
+
+By running your application on your machine you benefit from a
+gazillion times faster CPU that can crunch those algorithms in no
+time. And you save EV3's battery too.
+
+You must add session to your config map. To establish session:
+
+```clojure
+
+user=> (use 'clj-ev3dev.ssh)
+user=> (def session (create-session {:ip-address "192.168.2.3" :username
+"username" :password "password" :strict-host-key-checking :no}))
+user=> (def config {:env :remote :session session})
+
+```
+
+To find node names of connected sensors and motors,
+to read and write mode:
+
+```clojure
+user=> (require '[clj-ev3dev.devices :as devices])
+```
+
+Infrared sensor:
+
+```clojure
+
+user=> (require '[clj-ev3dev.sensors.infrared :as infrared])
+user=> (def infrared-sensor (devices/find-sensor config {:device-type
+:infrared :port :four}))
+user=> (infrared/read-proximity config infrared-sensor)
+       44
+
+```
+
+Touch sensor:
+
+```clojure
+
+user=> (require '[clj-ev3dev.sensors.touch :as touch])
+user=> (def touch-sensor (devices/find-sensor config {:device-type
+:touch :port :1}))
+user=> (touch/pressed? config touch-sensor)
+       true
+
+```
+
+Color sensor:
+
+
+```clojure
+
+user=> (require '[clj-ev3dev.sensors.color :as color])
+user=> (def color-sensor (devices/find-sensor config {:device-type
+:color :port :one}))
+user=> (devices/read-mode config color-sensor)
+user=> :col-color
+user=> (color/read-color config color-sensor)
+       :red
+user=> (devices/write-mode config color-sensor :col-reflect)
+user=> (color/read-reflected-light-intensity config color-sensor)
+       23
+```
+
+LEDs:
+
+```clojure
+
+user=> (def red-left (devices/find-led :red-left)) ;; :red-right, :green-left, :green-right
+user=> (require '[clj-ev3dev.led :as led])
+user=> (led/read-intensity config red-left)
+       0
+user=> (led/max-intensity config red-left)
+       255
+user=> (led/set-intensity config red-left 75)
+
+```
+
+Tacho motors:
+
+```clojure
+
+user=> (require '[clj-ev3dev.motors.tacho :as tacho])
+user=> (def motor-left (tacho/find-tacho-motor config :b))
+;; runs the left motor with very  slow speed
+user=> (tacho/run config motor-left 20)
+user=> (tacho/stop config motor-left)   ;; stops the motor
+```
+
 
 ## License
 

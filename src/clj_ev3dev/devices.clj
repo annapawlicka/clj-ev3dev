@@ -12,12 +12,12 @@
             :green-right "/sys/class/leds/"})
 
 (def type-resolver {:touch       "lego-ev3-touch"
-                    :color       "ev3-uart-29"
-                    :infrared    "ev3-uart-33"
-                    :green-left  "ev3:green:left"
-                    :green-right "ev3:green:right"
-                    :red-left    "ev3:red:left"
-                    :red-right   "ev3:red:right"})
+                    :color       "lego-ev3-color"
+                    :infrared    "lego-ev3-ir"
+                    :green-left  "ev3-left1:green:ev3dev"
+                    :green-right "ev3-right1:green:ev3dev"
+                    :red-left    "ev3-left0:red:ev3dev"
+                    :red-right   "ev3-right0:red:ev3dev"})
 
 (def default-ports {:touch    "in1"
                     :color    "in3"
@@ -61,29 +61,15 @@
   [sensor k]
   (str (get paths (:device-type sensor)) (:node sensor) "/" (name k)))
 
-(defmulti #^{:private true} command-string (fn [sensor command] (:type command)))
-
-(defmethod command-string :read-value [{:keys [node]} _]
-  (str "cat /sys/class/msensor/" node "/value0"))
-
-(defmethod command-string :read-mode [{:keys [node]} _]
-  (str "cat /sys/class/msensor/" node "/mode"))
-
-(defmethod command-string :read-units [{:keys [node]} _]
-  (str "cat /sys/class/msensor/" node "/units"))
-
-(defmethod command-string :write-value [{:keys [node]} command]
-  (str "echo \"" (:value command) "\" > /sys/class/msensor/" node "/value"))
-
-(defmethod command-string :write-mode [{:keys [node]} command]
-  (str "echo \"" (:value command) "\" > /sys/class/msensor/" node "/mode"))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Attributes
 
 (defmulti write-attr (fn [config _ _ _] (:env config)))
 
-(defmethod write-attr :remote [config sensor attr value])
+(defmethod write-attr :remote [config sensor attr value]
+  (let [cmd (str "echo \"" value "\" > " (get paths (:device-type sensor))
+                 (:node sensor) "/" (name attr))]
+    (ssh/execute (:session config) cmd)))
 
 (defmethod write-attr :local [config sensor attr value]
   (spit (str (get paths (:device-type sensor)) (:node sensor) "/" (name attr)) value))
@@ -92,9 +78,9 @@
   (fn [config _ _] (:env config)))
 
 (defmethod read-attr :remote [config sensor attr]
-  (let [v (ssh/execute (:session config) (command-string sensor {:type :read-value}))]
-    (when-not (empty? v)
-      (. Integer parseInt v))))
+  (let [cmd (str "cat " (get paths (:device-type sensor))
+                 (:node sensor) "/" (name attr))]
+    (ssh/execute (:session config) cmd)))
 
 (defmethod read-attr :local [config sensor attr]
   (str/trim-newline (slurp (build-path sensor attr))))
@@ -136,10 +122,10 @@
 ;; Mapping
 
 (defn- port-name [sensor]
-  (str "cat /sys/class/msensor/" sensor "/port_name"))
+  (str "cat /sys/class/lego-sensor/" sensor "/port_name"))
 
 (defn- type-name [sensor]
-  (str "cat /sys/class/msensor/" sensor "/name"))
+  (str "cat /sys/class/lego-sensor/" sensor "/driver_name"))
 
 (defn locate-in-port
   "Searches through devices directory and either returns
@@ -172,7 +158,7 @@
 
 (defmethod find-device :remote [config device]
   (let [{:keys [device-type port]} device
-        files                      (str/split-lines (ssh/execute (:session config) "ls /sys/class/msensor"))
+        files                      (str/split-lines (ssh/execute (:session config) "ls /sys/class/lego-sensor"))
         port                       (if port (get ports port) (get default-ports device-type))]
     {:device-type device-type :node (locate-in-port config (assoc device :port port) files)}))
 

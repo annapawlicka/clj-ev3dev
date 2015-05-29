@@ -49,7 +49,7 @@
 (deftest read-driver-name-test
   (with-redefs [paths test-paths]
     (testing "Testing read-driver-name."
-      (is (= "ev3-uart-29"
+      (is (= "lego-ev3-color"
              (read-driver-name {:env :local} {:device-type :infrared :node "sensor1"}))))))
 
 (deftest read-port-name-test

@@ -9,7 +9,9 @@
 
   Returns a numeric value."
   [config sensor]
-  (. Integer parseInt (devices/read-attr config sensor :brightness)))
+  (let [v (devices/read-attr config sensor :brightness)]
+    (when-not (empty? v)
+      (. Integer parseInt v))))
 
 (defn max-intensity
   "Reads maximum brightness of the led.
@@ -19,7 +21,9 @@
 
   Returns a numeric value."
   [config sensor]
-  (. Integer parseInt (devices/read-attr config sensor :max_brightness)))
+  (let [v (devices/read-attr config sensor :max_brightness)]
+    (when-not (empty? v)
+      (. Integer parseInt v))))
 
 (defn set-intensity
   "Sets the brightness of the led.
