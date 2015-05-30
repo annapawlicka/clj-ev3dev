@@ -162,15 +162,15 @@ user=> (tacho/stop config motor-left)   ;; stops the motor
   (println "MOTORS")
   (let [left-motor  (tacho/find-tacho-motor config :b)
         right-motor (tacho/find-tacho-motor config :c)]
-    (tacho/run config left-motor 20)
-    (tacho/run config right-motor 20)
+    (tacho/run-forever config left-motor 20)
+    (tacho/run-forever config right-motor 20)
     (tacho/stop config left-motor)
     (tacho/stop config right-motor)))
 
 (defn test-color-sensor [config]
   (println "COLOR")
   (let
-  [color-sensor (devices/find-sensor config {:device-type :color :port :two})]
+  [color-sensor (devices/find-sensor config {:device-type :color :port :one})]
     (devices/write-mode config color-sensor :col-color)
     (println "Color: " (color/read-color config color-sensor))))
 
@@ -179,17 +179,6 @@ user=> (tacho/stop config motor-left)   ;; stops the motor
   (let [infrared-sensor (devices/find-sensor config {:device-type :infrared :port :four})]
     (println "Proximity: " (infrared/read-proximity config infrared-sensor))))
 
-(defn test-touch-sensor [config]
-  (println "TOUCH")
-  (let [touch-sensor (devices/find-sensor config
-                                         {:device-type :touch
-                                         :port :one})]
-  (if touch-sensor
-    (while (not (touch/pressed? config touch-sensor))
-      (println "Waiting for you to press me o.0")
-      (Thread/sleep 1000))
-    (println "Could not find touch sensor."))))
-
 (defn -main
   "The application's main function"
   [& args]
@@ -197,8 +186,21 @@ user=> (tacho/stop config motor-left)   ;; stops the motor
     (test-leds config)
     (test-motors config)
     (test-color-sensor config)
-    (test-infrared-sensor config)
-    (test-touch-sensor config)))
+    (test-infrared-sensor config)))
+```
+
+Create an uberjar:
+```shell
+lein compile
+lein uberjar
+```
+and copy it to the robot:
+```shell
+scp target/clj-ev3dev-exampleapp-0.1.0-SNAPSHOT-standalone.jar ev3dev:
+```
+Ssh onto the robot and run the application:
+```shell
+java -jar clj-ev3dev-exampleapp-0.1.0-SNAPSHOT-standalone.jar
 ```
 
 ### Comunicating over ssh (remote)

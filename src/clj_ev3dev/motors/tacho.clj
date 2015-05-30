@@ -30,7 +30,7 @@
 
 (defmethod send-command :local [config motor value]
   (spit (str root-motor-path "/"
-             motor "/command")) (name value))
+             motor "/command") (name value)))
 
 (defmulti  write-attr (fn [config _ _ _] (:env config)))
 
@@ -40,7 +40,7 @@
     (ssh/execute (:session config) cmd)))
 
 (defmethod write-attr :local [config motor k value]
-  (spit (str root-motor-path motor "/" (keyword->attr k)) (keyword->attr value)))
+  (spit (str root-motor-path motor "/" (keyword->attr k)) value))
 
 (defmulti read-attr (fn [config _ _] (:env config)))
 
