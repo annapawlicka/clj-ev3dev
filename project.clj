@@ -9,6 +9,7 @@
 
   :jar-name "clj-ev3dev-%s.jar"
 
-  :dependencies [[org.clojure/clojure "1.6.0"]]
+  :dependencies [[org.clojure/clojure "1.7.0-RC1"]
+                 [clj-ssh "0.5.11"]]
 
   :plugins [[codox "0.8.10"]])

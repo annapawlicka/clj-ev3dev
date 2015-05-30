@@ -8,7 +8,7 @@
 
   If you're not sure in which mode the sensor currently
   operates, you can check it by running:
-  (devices/read-mode session sensor)
+  (devices/read-mode config sensor)
 
   To change the mode of the sensor to one of the followng:
   :ir-prox   Proximity
@@ -18,6 +18,6 @@
   :ir-s-alt  Alternate IR seeker,
 
   please run:
-  (devices/write-mode session sensor :ir-prox)"
-  [sensor]
-  (devices/read-value sensor))
+  (devices/write-mode config sensor :ir-prox)"
+  [config sensor]
+  (devices/read-value config sensor))
