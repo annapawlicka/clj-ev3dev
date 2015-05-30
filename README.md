@@ -7,6 +7,7 @@ Once the library is more stable it will drop `-SNAPSHOT`.
 ```clojure
 [clj-ev3dev "0.1.0-SNAPSHOT"]
 ```
+Generated doc can be found  [here](http://annapawlicka.com/clj-ev3dev/)
 
 ## Getting Started
 
