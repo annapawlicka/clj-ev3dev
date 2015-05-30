@@ -33,12 +33,10 @@ java -jar name-of-your-standalone.jar
 ```
 
 But deploying the jar each time you want to test something is a little
-cumbersome. For this reason I've created
-[clj-ev3dev-remote](https://github.com/annapawlicka/clj-ev3dev-remote)
-
-If you'd like to play with ev3 first, or you're ok with running it
-remotely, `clj-ev3dev-remote` will execute all your commands through
+cumbersome. For this reason you can set the environment to remote by
+updating the config: `{:env :remote}` and running all commands over
 ssh.
+More details can be found in the remote section below.
 
 ### Performance
 While you're writing your controller, you have to keep in mind
